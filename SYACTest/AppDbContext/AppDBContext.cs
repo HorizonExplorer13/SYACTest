@@ -11,8 +11,9 @@ namespace SYACTest.AppDbContext
 
         public DbSet<ClientsEntity> clients { get; set; }
         public DbSet<Products> Products { get; set; }
-        public DbSet<ProductsToPurchs> ProductsToPurchs { get; set; }
-        public DbSet<PurchesOrder> purchesOrders { get; set; }
+        public DbSet<PurchesOrders> purchesOrders { get; set; }
+
+        public DbSet<OrderProducts> orderProducts { get; set; }
 
     }
 }

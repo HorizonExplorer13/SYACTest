@@ -34,31 +34,20 @@ namespace SYACTest.Services.ProductsServices
 
         public async Task<ServiceResponse<List<Products>>> createproducto(List<ProductsDTO> product)
         {
-            var productsToCreate = new List<Products>();
-            foreach (var Tocreate in product)
+            var createProducts = new List<Products>();
+            foreach(var item in product)
             {
-                var createProduct = new Products
-                {
-                    productName = Tocreate.productName,
-                    productoCode = Tocreate.productoCode,
-                    productUnitValue = Tocreate.productUnitValue,
+                var toadd = new Products {
+                    productname = item.productName,
+                    productCode = item.productoCode,
+                    unitValue = item.productUnitValue
                 };
-                productsToCreate.Add(createProduct);
+                createProducts.Add(toadd);
             }
-            
+            await DBContext.Products.AddRangeAsync(createProducts);
+            await DBContext.SaveChangesAsync();
 
-            await DBContext.AddRangeAsync(productsToCreate);
-            
-            var result = await DBContext.SaveChangesAsync();
-            if (result != 0)
-            {
-                var productcraeted = await DBContext.Products.ToListAsync();
-                return new ServiceResponse<List<Products>>
-                {
-                    statusCode = 200,
-                    data = productcraeted
-                };
-            }
+           
             return new ServiceResponse<List<Products>>
             {
                 statusCode = 400

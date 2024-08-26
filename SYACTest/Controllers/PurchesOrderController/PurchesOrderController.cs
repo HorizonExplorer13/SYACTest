@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SYACTest.DTOs;
+using SYACTest.DTOs.PurchesOrders;
 using SYACTest.Services.PurchesOrderService;
 
 namespace SYACTest.Controllers.PurchesOrderController
@@ -19,16 +19,8 @@ namespace SYACTest.Controllers.PurchesOrderController
         [Route("CreateOrder")]
         public async Task<IActionResult> CreatePurchesOrder([FromBody] CreatePurchesOrderDTO createPurchesOrder)
         {
-            var ServiceResponse = await PurchesOrderService.CreatePurchesOrder(createPurchesOrder);
-            switch (ServiceResponse.statusCode)
-            {
-                case 200:
-                    return Ok(ServiceResponse);
-                case 400:
-                    return BadRequest(ServiceResponse);
-                default:
-                    return BadRequest(ServiceResponse);
-            }
+
+            return Ok(createPurchesOrder);
         }
     }
 }

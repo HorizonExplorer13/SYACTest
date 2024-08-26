@@ -1,110 +1,98 @@
 ﻿using SYACTest.AppDbContext;
 using SYACTest.AuxModels;
-using SYACTest.DTOs;
 using SYACTest.Entitys;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using SYACTest.DTOs.PurchesOrders;
+using SYACTest.Services.Clients;
+using SYACTest.DTOs;
 //using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SYACTest.Services.PurchesOrderService
 {
     public class PurchesOrderService : IPurchesOrderService
     {
-        public AppDBContext AppDBContext { get; }
+        public AppDBContext DBContext { get; }
+        public IClientsService ClientsService { get; }
 
-        public PurchesOrderService(AppDBContext appDBContext)
+        public PurchesOrderService(AppDBContext appDBContext,IClientsService clientsService)
         {
-            AppDBContext = appDBContext;
+            DBContext = appDBContext;
+            ClientsService = clientsService;
         }
 
         public async Task<ServiceResponse<List<PurchesOrderDTO>>> GetPurchesOrdersList()
         {
+            var purchesOrders = await DBContext.purchesOrders.Include(cl => cl.client).Include(opr => opr.orderProducts).ThenInclude(pro => pro.products).ToListAsync();
+
             return new ServiceResponse<List<PurchesOrderDTO>>
             {
                 statusCode = 200,
             };
         }
 
-        public async Task<ServiceResponse<PurchesOrder>> CreatePurchesOrder(CreatePurchesOrderDTO createPurchesOrder)
+        public async Task<ServiceResponse<PurchesOrders>> CreatePurchesOrder(CreatePurchesOrderDTO createPurchesOrder)
         {
-
-            var clientoAttach = await AppDBContext.clients.FindAsync(createPurchesOrder.documentClient);
-            
-            
-            var createOrder = new PurchesOrder
-            {
-                clientId = clientoAttach.clientId,
-                priority = createPurchesOrder.priority,
-                recordDate = DateTime.Now,
-                RequestAddress = createPurchesOrder.requestAddress,
-                products = new List<OrderProduct>(),
-                state = "pending",
-                TtotalToPurch = createPurchesOrder.quantity,
-                totalPurchValue = createPurchesOrder.totalPurchesvalue,          
-            };
-
-            decimal totalValue = 0;
-            foreach (var productDto in createPurchesOrder.products)
-            {
-                var product = await AppDBContext.Products.FindAsync(productDto.productId);
-                if (product == null)
+            var ExistedClient = await DBContext.clients.FirstOrDefaultAsync(cl => cl.clientDocument == createPurchesOrder.clientDocument);
+            do
+            {           
+                if (ExistedClient == null)
                 {
-                    return new ServiceResponse<PurchesOrder>
+                    var createNewClient = new CreateClientDTO
                     {
-                        statusCode = 404,
-                        
+                        document = createPurchesOrder.clientDocument,
+                        name = createPurchesOrder.clientName,
+                        address = createPurchesOrder.clientAddrees
                     };
+                    await ClientsService.createClients(createNewClient);
                 }
-
-                var partialValue = product.productUnitValue * createPurchesOrder.quantity;
-                totalValue += partialValue;
-
-                createOrder.products.Add(new OrderProduct
-                {
-                    ProductId = product.productId,
-                    Quantity = createPurchesOrder.quantity,
-                    PartialValue = partialValue
-                });
-            }
-            AppDBContext.purchesOrders.Add(createOrder);
-            var result = await AppDBContext.SaveChangesAsync();
-            if(result != 0)
+                ExistedClient = await DBContext.clients.FirstOrDefaultAsync(cl => cl.clientDocument == createPurchesOrder.clientDocument);
+            } while (ExistedClient == null);      
+            using var transaction = await DBContext.Database.BeginTransactionAsync();
+            PurchesOrders createPartialPurchesOrder ;
+            try
             {
-               
-                var updateState =await AppDBContext.purchesOrders.FirstOrDefaultAsync(po => po.clientId == clientoAttach.clientId);
-                if(updateState != null)
+                 createPartialPurchesOrder = new PurchesOrders
                 {
-                    updateState.state = "Regitrado";
-                    AppDBContext.Entry(updateState).State = EntityState.Modified;   
-                    var secondResult = await AppDBContext.SaveChangesAsync();
-                    if (secondResult != 0 )
+                    clientId = ExistedClient.clientId,
+                    deliveryAddress = createPurchesOrder.deliveryAddress,
+                    recordDate = DateTime.UtcNow,
+                    state = "pending",
+                    priority = createPurchesOrder.priority,
+                    TotalValue = createPurchesOrder.totalValue
+                };
+
+                DBContext.purchesOrders.Add(createPartialPurchesOrder);
+                await DBContext.SaveChangesAsync();
+                var newOrderProductsList = new List<OrderProducts>();
+                foreach(var item in createPartialPurchesOrder.orderProducts)
+                {
+                    var product = await DBContext.Products.FindAsync(item.productId);
+                    var orderProduct = new OrderProducts
                     {
-                        return new ServiceResponse<PurchesOrder>
-                        {
-                            statusCode = 200,
-                            data = createOrder
-                        };
-                    }
-                };
-                return new ServiceResponse<PurchesOrder>
+                        purchaseOrderId = item.purchaseOrderId,
+                        productId = item.productId,
+                        quantity = item.quantity,
+                        partialValue = item.partialValue,
+                    };
+                    newOrderProductsList.Add(orderProduct);
+                }
+                DBContext.orderProducts.AddRange(newOrderProductsList);
+                await DBContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                var completepurchesOrder = await DBContext.purchesOrders.Include(cl => cl.client).Include(opr => opr.orderProducts).ThenInclude(op => op.products).FirstOrDefaultAsync(cpo => cpo.purchesOrderid == createPartialPurchesOrder.purchesOrderid);
+                return new ServiceResponse<PurchesOrders>
                 {
-                    statusCode = 400
+                    statusCode = 200,
+                    data = completepurchesOrder
                 };
-
+            } catch (Exception ex) {
+                return new ServiceResponse<PurchesOrders> {
+                    statusCode = 400,
+                    messages = ex.ToString()
+                };
             }
-            return new ServiceResponse<PurchesOrder>
-            {
-                statusCode = 400
-            };
-
         }
-
-
-        private static int defineTotalPurchValue(int unitvalue,int quantity)
-        {
-            return unitvalue * quantity;
-        }
-
     }
 }

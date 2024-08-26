@@ -17,27 +17,16 @@ namespace SYACTest.Services.Clients
 
         public async Task<ServiceResponse<ClientsEntity>> createClients(CreateClientDTO createClient)
         {
-            var createNewClient = new ClientsEntity
-            {
-                document = createClient.document,
-                name = createClient.name,
-                address = createClient.address
+            var create = new ClientsEntity { 
+                clientName = createClient.name,
+                clientAddress = createClient.address,
+                clientDocument = createClient.document,
             };
 
-            DBContext.clients.Add(createNewClient);
+            DBContext.clients.Add(create);
             var result = await DBContext.SaveChangesAsync();
-            if(result != 0)
-            {
-                var createdClient = await DBContext.clients.FirstOrDefaultAsync(cl => cl.document == createNewClient.document);
-                return new ServiceResponse<ClientsEntity>
-                {
-                    statusCode = 200,
-                    data = createdClient
-                };
-            }
-            return new ServiceResponse<ClientsEntity>
-            {
-                statusCode = 400
+            return new ServiceResponse<ClientsEntity> {
+                statusCode = 200,
             };
         }
     }

@@ -6,8 +6,11 @@ namespace SYACTest.Entitys
     {
         [Key]
         public int clientId { get; set; }
-        public string document { get; set; }
-        public string name { get; set; }
-        public string address { get; set; }
+        public string clientDocument { get; set; }
+        public string clientName { get; set; }
+        public string clientAddress { get; set; }
+
+        public List<PurchesOrders> purchesOrdersAsosiated { get; set; }
+
     }
 }

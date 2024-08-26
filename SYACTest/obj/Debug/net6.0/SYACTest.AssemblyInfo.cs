@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SYACTest")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d90bf1a5248835e55df6640bcc1837a1e3d718b9")]
 [assembly: System.Reflection.AssemblyProductAttribute("SYACTest")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SYACTest")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
