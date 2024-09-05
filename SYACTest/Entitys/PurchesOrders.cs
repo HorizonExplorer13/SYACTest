@@ -17,7 +17,7 @@ namespace SYACTest.Entitys
         public string priority { get; set; }
         public DateTime recordDate { get; set; }
         public string deliveryAddress { get; set; }
-        public decimal TotalValue  { get; set; }
+        public decimal totalValue  { get; set; }
 
     }
 }

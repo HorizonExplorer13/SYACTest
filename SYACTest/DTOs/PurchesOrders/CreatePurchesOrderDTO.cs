@@ -11,7 +11,6 @@ namespace SYACTest.DTOs.PurchesOrders
 
         public List<OrderProductsDTO> orderProducts { get; set; }
 
-        public string priority { get; set; }
         public string deliveryAddress { get; set; }
 
         public decimal totalValue { get; set; }

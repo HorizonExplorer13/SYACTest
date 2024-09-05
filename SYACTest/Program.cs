@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SYACTest.AppDbContext;
+using SYACTest.AuxServices.Middlewares;
 using SYACTest.Services.Clients;
 using SYACTest.Services.ProductsServices;
 using SYACTest.Services.PurchesOrderService;
@@ -12,6 +13,11 @@ builder.Services.AddCors(options => {
         builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
     });
 });
+builder.Services.AddControllers().AddJsonOptions(
+    options => {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    });
 // Add services to the container.
 builder.Services.AddDbContext<AppDBContext>(options => options.UseSqlServer(Connection));
 builder.Services.AddControllers();
@@ -24,6 +30,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseMiddleware<SeedDataMiddlewareService>();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -31,6 +38,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

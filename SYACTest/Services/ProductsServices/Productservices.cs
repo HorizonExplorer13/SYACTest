@@ -16,20 +16,64 @@ namespace SYACTest.Services.ProductsServices
         public AppDBContext DBContext { get; }
 
         public async Task<ServiceResponse<object>> getlist(){
-            var list = await DBContext.Products.ToListAsync();
-            if(list.Any() || list.Count > 0)
-            {
-                return new ServiceResponse<object>
+            List<Products> productList = new List<Products>();
+            productList = new List<Products> {
+                new Products
                 {
-                    statusCode = 200,
-                    data = list
-                };
-            }
+                     productId = 1,
+                     productname = "P1",
+                     productCode = "1",
+                     unitValue = 1,
+                },
+                 new Products
+                {
+                     productId = 2,
+                     productname = "P2",
+                     productCode = "2",
+                     unitValue = 2,
+                },
+                  new Products
+                {
+                     productId = 3,
+                     productname = "P3",
+                     productCode = "3",
+                     unitValue = 3,
+                },
+                   new Products
+                {
+                     productId = 4,
+                     productname = "P4",
+                     productCode = "4",
+                     unitValue = 4,
+                },
+                    new Products
+                {
+                     productId = 5,
+                     productname = "P5",
+                     productCode = "5",
+                     unitValue = 5,
+                },
+            };
+
             return new ServiceResponse<object>
             {
-                statusCode = 400,
-                
+                statusCode = 200,
+                data = productList,
             };
+        //    var list = await DBContext.Products.ToListAsync();
+        //    if(list.Any() || list.Count > 0)
+        //    {
+        //        return new ServiceResponse<object>
+        //        {
+        //            statusCode = 200,
+        //            data = list
+        //        };
+        //    }
+        //    return new ServiceResponse<object>
+        //    {
+        //        statusCode = 400,
+                
+        //    };
         }
 
         public async Task<ServiceResponse<List<Products>>> createproducto(List<ProductsDTO> product)
@@ -39,19 +83,26 @@ namespace SYACTest.Services.ProductsServices
             {
                 var toadd = new Products {
                     productname = item.productName,
-                    productCode = item.productoCode,
+                    productCode = item.productCode,
                     unitValue = item.productUnitValue
                 };
                 createProducts.Add(toadd);
             }
             await DBContext.Products.AddRangeAsync(createProducts);
-            await DBContext.SaveChangesAsync();
+            var result = await DBContext.SaveChangesAsync();
 
-           
+           if(result != 0)
+            {
+                return new ServiceResponse<List<Products>>
+                {
+                    statusCode = 200
+                };
+            }
             return new ServiceResponse<List<Products>>
             {
                 statusCode = 400
             };
+
         }
 
     }

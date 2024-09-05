@@ -21,7 +21,7 @@ namespace SYACTest.Services.PurchesOrderService
             DBContext = appDBContext;
             ClientsService = clientsService;
         }
-
+       
         public async Task<ServiceResponse<List<PurchesOrderDTO>>> GetPurchesOrdersList()
         {
             var purchesOrders = await DBContext.purchesOrders.Include(cl => cl.client).Include(opr => opr.orderProducts).ThenInclude(pro => pro.products).ToListAsync();
@@ -51,16 +51,19 @@ namespace SYACTest.Services.PurchesOrderService
             } while (ExistedClient == null);      
             using var transaction = await DBContext.Database.BeginTransactionAsync();
             PurchesOrders createPartialPurchesOrder ;
+            var totalProducts = await DBContext.Products.CountAsync();
+            var totalUnitValuesSum = await DBContext.Products.SumAsync(p => p.unitValue);
             try
             {
+                
                  createPartialPurchesOrder = new PurchesOrders
                 {
                     clientId = ExistedClient.clientId,
                     deliveryAddress = createPurchesOrder.deliveryAddress,
                     recordDate = DateTime.UtcNow,
                     state = "pending",
-                    priority = createPurchesOrder.priority,
-                    TotalValue = createPurchesOrder.totalValue
+                    priority = genPriority(createPurchesOrder.totalValue,totalProducts,totalUnitValuesSum),
+                    totalValue = createPurchesOrder.totalValue
                 };
 
                 DBContext.purchesOrders.Add(createPartialPurchesOrder);
@@ -94,5 +97,22 @@ namespace SYACTest.Services.PurchesOrderService
                 };
             }
         }
+
+        private static string genPriority(decimal value,int totalProducts, int totalUnitValuesSum)
+        {
+            var media = totalUnitValuesSum/totalProducts;
+            if (value > 1 &&  value < media)
+            {
+                return "Low";
+            }else if (value > media && value < totalUnitValuesSum)
+            {
+                return "Medium";
+            }
+            else
+            {
+                return "High";
+            }
+        }
+
     }
 }

@@ -33,7 +33,7 @@ namespace SYACTest.Controllers.Products
 
 
         [HttpPost]
-        [Route("CreateProduct")]
+        [Route("CreateProducts")]
         public async Task<IActionResult> CreateProducts([FromBody]List<ProductsDTO> products)
         {
             var ServiceResponse = await ProductService.createproducto(products);

@@ -8,6 +8,14 @@ namespace SYACTest.AppDbContext
         public AppDBContext(DbContextOptions options) : base(options)
         {
         }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PurchesOrders>()
+                .Property(p => p.totalValue)
+                .HasColumnType("decimal(18,2)");
+
+            base.OnModelCreating(modelBuilder);
+        }
 
         public DbSet<ClientsEntity> clients { get; set; }
         public DbSet<Products> Products { get; set; }

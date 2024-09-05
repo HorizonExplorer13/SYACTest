@@ -28,7 +28,7 @@
   {
     "ContainingType": "SYACTest.Controllers.Products.ProductoController",
     "Method": "CreateProducts",
-    "RelativePath": "Api/Products/CreateProduct",
+    "RelativePath": "Api/Products/CreateProducts",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
